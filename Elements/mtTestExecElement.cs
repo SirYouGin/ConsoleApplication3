@@ -18,10 +18,10 @@ namespace ConsoleApplication3.Elements
 
             using (IConnection session = ConnectionFactory.makeConnection())
             {
-                IDBCommand cmd = session.getCommand("Z$SCRIPRS_LIB_API.mt_test_exec");
-                cmd.withParam("P_SESSION_FILE_NAME", Owner.Session);
-                cmd.withParam("P_TEST_MT", prop["mt_test"]);
-                cmd.withParam("P_CONDITION", prop["condition"]);
+                IDBCommand cmd = session.getCommand("Z$SCRIPTS_LIB_API.mt_exec");
+                cmd.withParam("P_SESSION_FILE_NAME", m_conf["SessionId"]);
+                cmd.withParam("P_TEST_MT", m_conf["mt_test"]);
+                cmd.withParam("P_CONDITION", m_conf["condition"]);
                 cmd.Execute();
 
                 session.Commit();

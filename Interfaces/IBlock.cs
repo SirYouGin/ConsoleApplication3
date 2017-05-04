@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace ConsoleApplication3.Interfaces
 {
-    public interface IBlock : IReadOnlyCollection<IElement>, IElementEvents
+    public interface IBlock : IReadOnlyCollection<IElement>, IBlockEvents
     {
-        string Name { get; set;}
-        string Num { get; set; }
-        string Code { get; set; }
-        string Session { get; }
-        IContext ctx { get; }
+        string Name { get; }
+        string Num { get; }
+        string Code { get; }
         void Execute();
+        ITest test { get; }
     }
 }

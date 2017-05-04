@@ -13,7 +13,7 @@ namespace ConsoleApplication3.Interfaces
         
         void OnTestStart(ITest test);
         void OnTestFinish(ITest test);
-        void OnTestError(ITest test, TestEventArgs args);
+        void OnTestError(ITest test, Exception e);
             
     }
 
@@ -21,27 +21,13 @@ namespace ConsoleApplication3.Interfaces
     {        
         void OnBlockStart(IBlock block);
         void OnBlockFinish(IBlock block);
-        void OnBlockError(IBlock block, TestEventArgs args);        
+        void OnBlockError(IBlock block, Exception e);        
     }
 
     public interface IElementEvents
     {
         void OnElementStart(IElement element);
         void OnElementFinish(IElement element);
-        void OnElementError(IElement element, TestEventArgs args);
-    }
-
-    public interface IEvents :ITestEvents, IBlockEvents, IElementEvents
-    {
-        event TestStartEvent testStart;
-        event TestFinishEvent testFinish;
-        event TestErrorEvent testError;
-        event BlockStartEvent blockStart;
-        event BlockFinishEvent blockFinish;
-        event BlockErrorEvent blockError;
-        event ElementStartEvent elementStart;
-        event ElementFinishEvent elementFinish;
-        event ElementErrorEvent elementError;
-    
-    }
+        void OnElementError(IElement element, Exception e);
+    }    
 }

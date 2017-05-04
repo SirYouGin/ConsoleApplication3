@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ConsoleApplication3.Interfaces;
+using ConsoleApplication3.Implementations;
 
 namespace ConsoleApplication3
 {
@@ -17,29 +18,24 @@ namespace ConsoleApplication3
         ,{ "mt_save_result", typeof(ConsoleApplication3.Elements.mtSaveResultElement)} //Сохранить результат
         };
 
-        public static IElement makeElement(IBlock owner, XmlNode parent)
+        public static IElement makeElement(IBlock block, Dictionary<string,string> params_set, XmlNode root)
         {
-            string Name = String.Empty;
-            string Id = String.Empty;
-            
-            Dictionary<string, string> dict = new Dictionary<string, string>();
-            
-            XmlAttributeCollection attrib = parent.Attributes;
-            foreach (XmlAttribute a in attrib)
-            {
-                switch (a.Name)
-                {
-                    case "name": Name = a.Value; break;
-                    case "id": Id = a.Value; break;
-                }
-            }
+            IConfig conf = new Config();
+            conf.updateFrom(params_set);
 
+            string Name = conf["Name"];
+            string Id = conf["Id"];
+                                            
             if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException("Не задано имя элемента");
             if (!wellKnownElements.ContainsKey(Name)) throw new NotImplementedException(String.Format("Неизвестное имя элемента \"{0}\"",Name));
 
-            Type type = wellKnownElements[Name];
+            
 
-            foreach (XmlNode child in parent.ChildNodes)
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+
+            dict.Add("SessionId", block.test.testRun.Id);
+
+            foreach (XmlNode child in root.ChildNodes)
             {
                 XmlAttributeCollection pars = child.Attributes;
                 XmlAttribute name = pars["name"];
@@ -47,11 +43,13 @@ namespace ConsoleApplication3
                 dict.Add(name.Value, value.Value);
             }
 
+            Type type = wellKnownElements[Name];
+
             object Element = Activator.CreateInstance(type);
             IElement elem = Element as IElement;
             elem.Name = Name;
             elem.Id = Id;
-            elem.Owner = owner;
+            elem.Block = block;
             elem.Initialize(dict);
             return elem;
         }

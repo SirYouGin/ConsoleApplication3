@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 
 namespace ConsoleApplication3.Interfaces
 {
-    public interface IElement
+    public interface IElement : IElementEvents
     {        
         string Name {get; set;}
         string Id { get; set; }
-        string Session { get; }
-        IBlock Owner {get;set;}        
-        IContext ctx {get;}        
+        IBlock Block { get; set; }        
         void Execute();
         void Initialize(IDictionary<string, string> dict);
     }

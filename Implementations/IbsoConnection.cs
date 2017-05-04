@@ -12,7 +12,7 @@ namespace ConsoleApplication3.Implementations
 {
     
 
-    public enum ConnectionCacheStrategy { Off, On };
+    //public enum ConnectionCacheStrategy { Off, On };
     public sealed class IbsoConnection :IDisposable, IConnection
     {
         private Dictionary<string, string> m_sessionInfo;
@@ -23,7 +23,7 @@ namespace ConsoleApplication3.Implementations
         private string m_connStr;
         private OracleConnection m_conn;
         private OracleTransaction m_trx;
-        private OracleCommand m_cmd;        
+        //private OracleCommand m_cmd;        
         
         private static string m_defaultConnectionString;
 
@@ -58,16 +58,15 @@ namespace ConsoleApplication3.Implementations
             b.Add("User Id", DBUserName);
             b.Add("Password", DBUserPassword);
             b.Add("Data Source", DBName);
-            b.Add("Pooling", false);
-                    
-            return b.ConnectionString;            
+            b.Add("Pooling", false);                
+            return b.ConnectionString;          
         }
-        public static ConnectionCacheStrategy CacheConnections { get; set; }
+        //public static ConnectionCacheStrategy CacheConnections { get; set; }
 
         static IbsoConnection()
         {
             m_pool = new Dictionary<string, OracleConnection>();
-            CacheConnections = ConnectionCacheStrategy.Off;
+            //CacheConnections = ConnectionCacheStrategy.Off;
         }
         private void lockOpen()
         {
@@ -141,7 +140,7 @@ namespace ConsoleApplication3.Implementations
             if (m_conn == null) return;
             if (disposedValue) return;
             Trace.WriteLine("killSession");
-            if (CacheConnections == ConnectionCacheStrategy.On)
+            //if (CacheConnections == ConnectionCacheStrategy.On)
                 resetCache(m_conn);            
             string killinfo = m_sessionInfo["SID"];
             isOpen = false;
@@ -194,8 +193,8 @@ namespace ConsoleApplication3.Implementations
         
         private OracleConnection getConnection(string key = null)
         {
-            if (CacheConnections != ConnectionCacheStrategy.On)
-                return new OracleConnection(m_connStr);
+            //if (CacheConnections != ConnectionCacheStrategy.On)
+            //    return new OracleConnection(m_connStr);
             string m_key = String.IsNullOrWhiteSpace(key) ? m_connStr.ToUpper() : key.ToUpper();            
             if (!m_pool.ContainsKey(m_key))
                 m_pool.Add(m_key, new OracleConnection(m_connStr));            
@@ -211,21 +210,23 @@ namespace ConsoleApplication3.Implementations
         public void Close(bool clearLocks = false )
         {
             m_trx = null;
-            if (CacheConnections == ConnectionCacheStrategy.On)
-            {
+            //if (CacheConnections == ConnectionCacheStrategy.On)
+            //{
                 if (clearLocks) releaseLock = true;
                 return;
-            }
+            //}
+            /*
             Trace.WriteLine("Close active connection "+m_conn.ConnectionString);
             if (releaseLock) lockClear();
             m_conn.Close();
             isOpen = false;
+            */
         }
 
         public void resetCache(OracleConnection conn)
         {
             Trace.WriteLine("resetCache");
-            if (CacheConnections != ConnectionCacheStrategy.On) return;
+            //if (CacheConnections != ConnectionCacheStrategy.On) return;
             foreach (var item in m_pool.Where(kvp => kvp.Value == conn).ToList())
             {                
                 if (item.Value != null)
@@ -240,7 +241,7 @@ namespace ConsoleApplication3.Implementations
         }
         public static void flashCache()
         {
-            if (CacheConnections != ConnectionCacheStrategy.On) return;
+            //if (CacheConnections != ConnectionCacheStrategy.On) return;
             Trace.WriteLine("flashCache");
             foreach (KeyValuePair<string, OracleConnection> kvp in m_pool)            
             {
@@ -270,6 +271,7 @@ namespace ConsoleApplication3.Implementations
         {
             m_sessionInfo = new Dictionary<string, string>();
             m_connStr = String.IsNullOrWhiteSpace(connectionString)? m_defaultConnectionString : connectionString;
+            m_defaultConnectionString = m_defaultConnectionString ?? connectionString;
             m_waitTime = 5000;
             Reset(tag);
         }
@@ -441,11 +443,11 @@ namespace ConsoleApplication3.Implementations
                 if (disposing)
                 {
                     // TODO: освободить управляемое состояние (управляемые объекты).
-                    if (m_cmd != null) m_cmd.Dispose();
+                    //if (m_cmd != null) m_cmd.Dispose();
                     if (m_trx != null) m_trx.Dispose();
                     if (m_conn != null)
-                        if (CacheConnections == ConnectionCacheStrategy.On)
-                        {
+                        //if (CacheConnections == ConnectionCacheStrategy.On)
+                        //{
                             if (m_conn.State == ConnectionState.Open)
                                 if (releaseLock) lockClear();
                             if (!m_pool.ContainsValue(m_conn))
@@ -454,11 +456,11 @@ namespace ConsoleApplication3.Implementations
                             }
                             else
                                 m_conn = null;
-                        }
-                        else
-                        {
-                            m_conn.Dispose();
-                        }
+                        //}
+                        //else
+                        //{
+                        //    m_conn.Dispose();
+                        //}
 
                 }
 

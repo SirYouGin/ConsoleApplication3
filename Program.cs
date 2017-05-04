@@ -13,20 +13,25 @@ using ConsoleApplication3.Implementations;
 namespace ConsoleApplication3
 {
     class Program
-    {
-        public interface IConfig
-        {
-            string getProperty(string param);
-            void setProperty(string param);
-            IDictionary<string,string> getConfig();            
-        }
-
-        
+    {                
         static void Main(string[] args)
         {
 
-                        
-               
+            GlobalConfig conf = new GlobalConfig();
+
+            conf.readConfig();
+
+            Session session = new Session(conf);
+
+            IList<IDictionary<string,string>> cases = session.getCases();
+
+            if (cases.Count == 0) throw new Exception("No tests found.");
+
+            TestSet ts = new TestSet(session, cases);
+
+            ts.Run();
+
+            /*   
             XmlDocument doc = new XmlDocument();
             doc.Load("tests.xml");
 
@@ -61,8 +66,8 @@ namespace ConsoleApplication3
                 Console.WriteLine("TestSet Error: {0}", e);
             }
 
-            
-
+            */
+            Console.WriteLine("Press any key to close this window");
             Console.ReadKey();
         }
 
@@ -75,7 +80,7 @@ namespace ConsoleApplication3
         {
             Console.WriteLine("\t\tELEMENT:{0} finish", sender.Name);
         }
-        static void testSet_elementError(IElement sender, TestEventArgs args)
+        static void testSet_elementError(IElement sender, Exception e)
         {
             //Console.WriteLine("\t\tELEMENT:{0} error: {1}", sender.Name, args.e.Message);
             //throw args.e;
@@ -88,7 +93,7 @@ namespace ConsoleApplication3
         {
             Console.WriteLine("\tBLOCK:{0} finish", sender.Name);
         }
-        static void testSet_blockError(IBlock sender, TestEventArgs args)
+        static void testSet_blockError(IBlock sender,Exception e)
         {
             //Console.WriteLine("\tBLOCK:{0} error: {1}", sender.Name, args.e.Message);
             //throw args.e;
@@ -101,10 +106,10 @@ namespace ConsoleApplication3
         {
             Console.WriteLine("TEST:{0} finish", sender.Name);
         }
-        static void testSet_testError(ITest sender, TestEventArgs args)
+        static void testSet_testError(ITest sender, Exception e)
         {
-            args.cancel = true;
-            Console.WriteLine("TEST:{0} error: {1}", sender.Name, args.e);
+           
+            Console.WriteLine("TEST:{0} error: {1}", sender.Name,e);
         }
 
         

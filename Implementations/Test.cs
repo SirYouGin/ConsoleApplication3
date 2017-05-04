@@ -1,66 +1,38 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
-using System.Text;
 using System.Threading.Tasks;
-using System.Runtime.ExceptionServices;
 
-using ConsoleApplication3.Interfaces;
 using ConsoleApplication3.Events;
+using ConsoleApplication3.Interfaces;
 
 namespace ConsoleApplication3.Implementations
 {
-    class Test :ITest
+    class Test : ITest
     {
-        private readonly HashSet<IBlock> m_blockList = new HashSet<IBlock>();
-        private readonly ITestSet Owner;
-
+        private readonly List<IBlock> m_blockList = new List<IBlock>();
+        private readonly IConfig m_conf = new Config();
+        private readonly ITestRun m_testRun;       
         public string Name { get; set; }
         public string Overlap { get; set; }
         public string WinId { get; set; }
-
-        public string Session { get { return Owner.Session; } }
-        public IContext ctx { get { return Owner.ctx; } }
-
-        public void OnBlockStart(IBlock block)
+        public ITestRun testRun { get { return m_testRun; } }
+        public Test(ITestRun tr, Dictionary<string,string> param_set, XmlNode root)
         {
-            Owner.OnBlockStart(block);                
-        }
-        public void OnBlockFinish(IBlock block)
-        {
-           Owner.OnBlockFinish(block);                
-        }
-        public void OnBlockError(IBlock block, TestEventArgs args)
-        {
-            Owner.OnBlockError(block, args);
+            m_testRun = tr;
+            m_conf.updateFrom(param_set);
+            foreach (XmlNode node in root.FirstChild.ChildNodes)
+            {
+                Dictionary<string, string> p = new Dictionary<string, string>();
+                foreach (XmlAttribute attrib in node.Attributes)
+                    p.Add(attrib.Name, attrib.Value);
+                IBlock b = new Block(this, p, node);
+                m_blockList.Add(b);
+            }
         }
 
-        public void OnElementStart(IElement element)
-        {
-            Owner.OnElementStart(element);
-        }
-        public void OnElementFinish(IElement element)
-        {
-            Owner.OnElementFinish(element);
-        }
-        public void OnElementError(IElement element, TestEventArgs args)
-        {
-            Owner.OnElementError(element, args);
-        }
-
-        public Test(ITestSet owner, XmlNode parent)
-        {
-            Owner = owner;
-
-            XmlAttributeCollection attrib = parent.Attributes;
-            Name    = attrib["testname"].Value;
-            Overlap = attrib["name"].Value;
-            WinId   = attrib["GetWinID"].Value;
-
-            foreach (XmlNode child in parent.FirstChild.ChildNodes)
-                m_blockList.Add(new Block(this, child));
-        }
         public int Count
         {
             get
@@ -69,23 +41,55 @@ namespace ConsoleApplication3.Implementations
             }
         }
 
+        
+
+        public event TestStartEvent testStart;
+        public event TestFinishEvent testFinish;
+        public event TestErrorEvent testError;
+
+        public void OnTestStart(ITest test)
+        {
+            if (testStart != null)
+            {
+                TestStartEvent evnt = testStart; //avoid race condition
+                evnt(test);
+            }
+        }
+        public void OnTestFinish(ITest test)
+        {
+            if (testFinish != null)
+            {
+                TestFinishEvent evnt = testFinish; //avoid race condition
+                evnt(test);
+            }
+        }
+        public void OnTestError(ITest test, Exception e)
+        {
+            if (testError != null)
+            {
+                TestErrorEvent evnt = testError; //avoid race condition
+                evnt(test, e);
+            }
+        }
         public void Execute()
         {
-            foreach (IBlock b in m_blockList)
+
+            try
             {
-                try
-                {
-                    OnBlockStart(b);
-                    b.Execute();
-                    OnBlockFinish(b);
-                }
-                catch (Exception e)
-                {
-                    ExceptionDispatchInfo edi = ExceptionDispatchInfo.Capture(e); 
-                    TestEventArgs args = new TestEventArgs(e);
-                    OnBlockError(b, args);
-                    if (!args.cancel) edi.Throw();
-                }
+                OnTestStart(this);
+                internalExecute();
+                OnTestFinish(this);
+            }
+            catch (BlockException e)
+            {
+                OnTestError(this, e);
+            }
+        }
+        protected void internalExecute()
+        {
+            foreach (IBlock elem in m_blockList)
+            {
+                elem.Execute();
             }
         }
 

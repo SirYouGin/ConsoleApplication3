@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace ConsoleApplication3.Interfaces
 {
-    public interface ITestSet 
-    {        
-        void Run();
-        ISession Session { get; }
+    public interface ITestRun : IReadOnlyCollection<ITest>
+    {
+        string Id { get; }
+        void Execute();
+        ITestSet testSet { get; }
     }
 }

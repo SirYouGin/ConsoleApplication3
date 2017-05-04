@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace ConsoleApplication3.Interfaces
 {
-    public interface ITest : IReadOnlyCollection<IBlock>, IBlockEvents, IElementEvents
+    public interface ITest : IReadOnlyCollection<IBlock>, ITestEvents
     {
         string Name {get;set;}
         string Overlap { get; set; }
-        string WinId { get; set; }
-        string Session { get; }        
-        IContext ctx { get; }
+        string WinId { get; set; }                  
         void Execute();
+        ITestRun testRun { get; }
     }
 }
